@@ -30,19 +30,18 @@ else()
 	else()
 	endif()
 endif()
-message("${OpenCV_DIR}")
+
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OpenCV_LIBS})
-include_directories("3rdparty")
+
 file(COPY input DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 aux_source_directory(. SRC_LIST)
+
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME}${SUFFIX})
-
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} gdi32 ws2_32 ${LIBS})
