@@ -5,7 +5,6 @@
 #include <memory>
 #include <fstream>
 #include <boost/regex.hpp>
-//#include <regex> // Bug in gcc's regex. Doesn't recognize \d and sub matching requires multiple references to be correct.
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -35,23 +34,6 @@ int main(int argc, char* argv[]) {
     }
 
     // Parse cluster value
-/*    unsigned int k = 0;
-    if(std::sscanf(argv[1],"-k%u", &k)) {
-        std::cout << "Number of clusters (k): " << std::to_string(k) << std::endl;
-    } else {
-        std::cout << "k argument should be an unsigned integer: \"-k<unsinged int>\"" << std::endl;
-        return -1;
-    }*/
-
-    
-    /*if(std::sscanf(argv[1], "-i%s", &filepath)) {
-        
-    } else {
-        std::cout << "i argument should be a filepath: \"-i[filepath]\"" << std::endl;
-        return -1;
-    }*/
-
-    // Regex implementation of cluster value parser. Bug in g++ with \d
     boost::regex clusters_regex("-k([[:digit:]]+)");
     boost::smatch clusters_regex_result;
     unsigned int k = 0;
@@ -63,7 +45,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // Parse filepath. Bug in g++ for basic submatching, still need boost 
+    // Parse filepath
     boost::regex filepath_regex("-i(.+)");
     boost::smatch filepath_regex_result;
     std::string filepath = "";
@@ -80,6 +62,20 @@ int main(int argc, char* argv[]) {
     if(!input.is_open()) {
         std::cout << "Couldn't open file " << filepath << std::endl;
         return -1;
+    }
+    std::vector<cv::Vec2i> data;
+    boost::regex point_regex("(.+),(.+)");
+    boost::smatch point_regex_result;
+    for(std::string line; std::getline(input, line); ) {
+       if(boost::regex_match(line, point_regex_result, point_regex)) {
+           int x = std::stoul(point_regex_result[1].str());
+           int y = std::stoul(point_regex_result[2].str());
+           data.push_back(cv::Vec2i(x,y));
+           std::cout << data.back() << std::endl;
+        } else {
+            std::cout << "Regex format doesn't match line style" << std::endl;
+            return -1;
+        }
     }
     char window[] = "Clustering";
     cv::Mat image = cv::Mat::zeros(100, 100, CV_8UC3);
