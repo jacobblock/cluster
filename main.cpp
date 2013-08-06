@@ -10,6 +10,47 @@
 
 static double w = 100;
 
+class Parser {
+    public:
+        std::string filepath = "";
+        Parser(std::string filepath)
+            :filepath(filepath) {};
+        virtual std::vector<cv::Vec2i> parse() = 0;
+};
+
+class ParseByCSVPoints: public Parser {
+    public:
+        ParseByCSVPoints(std::string filepath)
+            : Parser(filepath) {};
+        std::vector<cv::Vec2i> parse() {
+            std::cout << "Parsing by CSV Points" << std::endl;
+
+            std::vector<cv::Vec2i> data;
+            
+            // Open file for reading
+            std::ifstream input(filepath);
+            if(!input.is_open()) {
+                std::cout << "Couldn't open file " << filepath << std::endl;
+                return data;
+            }
+
+            boost::regex point_regex("(.+),(.+)");
+            boost::smatch point_regex_result;
+            for(std::string line; std::getline(input, line); ) {
+                if(boost::regex_match(line, point_regex_result, point_regex)) {
+                    int x = std::stoul(point_regex_result[1].str());
+                    int y = std::stoul(point_regex_result[2].str());
+                    data.push_back(cv::Vec2i(x,y));
+                } else {
+                    std::cout << "Regex format doesn't match line style" << std::endl;
+                    return data;
+                }
+            }
+
+            return data;
+        };
+};
+
 void MyEllipse(cv::Mat img, double angle) {
     int thickness = 2;
     int lineType = 8;
@@ -57,26 +98,11 @@ int main(int argc, char* argv[]) {
         return -1;
     }
   
-    std::ifstream input(filepath);
+    std::unique_ptr<Parser> parser(new ParseByCSVPoints(filepath));
+    std::vector<cv::Vec2i> data = parser->parse();
 
-    if(!input.is_open()) {
-        std::cout << "Couldn't open file " << filepath << std::endl;
-        return -1;
-    }
-    std::vector<cv::Vec2i> data;
-    boost::regex point_regex("(.+),(.+)");
-    boost::smatch point_regex_result;
-    for(std::string line; std::getline(input, line); ) {
-       if(boost::regex_match(line, point_regex_result, point_regex)) {
-           int x = std::stoul(point_regex_result[1].str());
-           int y = std::stoul(point_regex_result[2].str());
-           data.push_back(cv::Vec2i(x,y));
-           std::cout << data.back() << std::endl;
-        } else {
-            std::cout << "Regex format doesn't match line style" << std::endl;
-            return -1;
-        }
-    }
+//    std::unique_ptr<Cluster> cluster(new ClusterByLloyd());
+
     char window[] = "Clustering";
     cv::Mat image = cv::Mat::zeros(100, 100, CV_8UC3);
     MyEllipse(image, 90);
@@ -87,8 +113,6 @@ int main(int argc, char* argv[]) {
     cv::imshow(window, image);
     cv::waitKey(0);
 
-    //	std::string inputfile(argv[2]);
-    //	std::cout << "Input file path: " << inputfile << std::endl;
 
     return 0;
 }
