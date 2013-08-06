@@ -4,11 +4,27 @@
 #include <regex>
 #include <memory>
 #include <fstream>
+#include <boost/regex.hpp>
+//#include <regex> // Bug in gcc's regex. Doesn't recognize \d and sub matching requires multiple references to be correct.
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 static double w = 100;
 
+void MyEllipse(cv::Mat img, double angle) {
+    int thickness = 2;
+    int lineType = 8;
+
+    cv::ellipse(img,
+                cv::Point(w/2.0, w/2.0),
+                cv::Size(w/4.0, w/16.0),
+                angle,
+                0,
+                360,
+                cv::Scalar(255, 0, 0),
+                thickness,
+                lineType);
+}
 
 
 int main(int argc, char* argv[]) {
@@ -35,13 +51,30 @@ int main(int argc, char* argv[]) {
         return -1;
     }*/
 
+    // Regex implementation of cluster value parser. Bug in g++ with \d
+    boost::regex clusters_regex("-k([[:digit:]]+)");
+    boost::smatch clusters_regex_result;
     unsigned int k = 0;
-    if(1 != std::sscanf(argv[1],"-k%u", &k)) {
-        std::cout << "k argument should be an unsigned integer" << std::endl;
-        return -1;
+    if(boost::regex_match(std::string(argv[1]), clusters_regex_result, clusters_regex)) {
+        k = std::stoul(clusters_regex_result[1].str());
+        std::cout << "Number of clusters: "  << std::to_string(k) << std::endl;
     } else {
-        std::cout << "Number of clusters (k): " << std::to_string(k) << std::endl;
+        std::cout << "k argument should be an unsigned integer: \"-k[unsigned int]\"" << std::endl;
+        return -1;
     }
+
+    // Parse filepath. Bug in g++ for basic submatching, still need boost 
+    boost::regex filepath_regex("-i(.+)");
+    boost::smatch filepath_regex_result;
+    std::string filepath = "";
+    if(boost::regex_match(std::string(argv[2]), filepath_regex_result, filepath_regex)) {
+        filepath = filepath_regex_result[1].str();
+        std::cout << "Input filepath: " << filepath << std::endl; 
+    } else {
+        std::cout << "i argument should be a filepath: \"-i[filepath]\"" << std::endl;
+        return -1;
+    }
+  
     std::ifstream input(filepath);
 
     if(!input.is_open()) {

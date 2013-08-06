@@ -37,6 +37,12 @@ find_package(OpenCV REQUIRED core highgui)
 include_directories(${OpenCV_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OpenCV_LIBS})
 
+# Find and link Boost
+set(BOOST_ROOT $ENV{BOOST_ROOT})
+find_package(Boost REQUIRED regex)
+include_directories(${Boost_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${Boost_LIBRARIES})
+
 file(COPY input DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 aux_source_directory(. SRC_LIST)
