@@ -24,14 +24,16 @@ if(WIN32)
 else()
 	if(UNIX)
 		find_package(X11 REQUIRED)
+                find_package(Threads REQUIRED)
 		include_directories(${X11_INCLUDE_DIR})
-		find_package(Threads REQUIRED)
                 set(LIBS ${LIBS} ${X11_LIBRARIES})
 	else()
 	endif()
 endif()
 
-find_package(OpenCV REQUIRED)
+# Find and link OpenCV
+set(OpenCV_DIR $ENV{OpenCV_DIR})
+find_package(OpenCV REQUIRED core highgui)
 include_directories(${OpenCV_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OpenCV_LIBS})
 
