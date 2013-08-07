@@ -45,7 +45,11 @@ bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &inputfile, 
 
         switch(command) {
         case 'k':
-            k = std::stoul(arg);
+#ifdef __MINGW32__
+            k = std::atoi(arg.c_str());
+#else
+            k = std::stoul(arg); // GCC still doesn't support this
+#endif
             break;
         case 'i':
             inputfile = arg;
@@ -64,7 +68,11 @@ bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &inputfile, 
         return false;
     }
 
+#ifdef __MINGW32__
+    std::cout << "Number of clusters: " << k << std::endl;
+#else
     std::cout << "Number of clusters: "  << std::to_string(k) << std::endl;
+#endif
     std::cout << "Input file: " << inputfile << std::endl;
     std::cout << "Output file: " << outputfile << std::endl;
 

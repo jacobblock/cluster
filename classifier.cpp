@@ -6,6 +6,9 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #define _USE_MATH_DEFINES
+#ifndef M_PI
+#define M_PI 3.141592
+#endif
 
 Classifier::Classifier(std::list<cv::Vec2i> data, unsigned int k, std::string outputfile, double convergence, unsigned int max_iterations)
     : data(data)
