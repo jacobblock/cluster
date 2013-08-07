@@ -77,9 +77,10 @@ KMeans::KMeans(std::list<cv::Vec2i> data, unsigned int k, std::string outputfile
         }
     }
 
-    int width = (topright[0] - bottomleft[0])+circle_radius;
-    int height = (topright[1] - bottomleft[1])+circle_radius;
+    int width = (topright[0] - bottomleft[0]);
+    int height = (topright[1] - bottomleft[1]);
     image = cv::Mat::zeros(width, height, CV_8UC3);
+    image = background;
     colors = colormodel();
 }
 

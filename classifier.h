@@ -22,7 +22,8 @@ protected:
     double convergence;
     unsigned int max_iterations;
     std::vector<cv::Scalar> colors;
-    unsigned int circle_radius = 5;
+    unsigned int circle_radius = 0;
+    cv::Scalar background = cv::Scalar(255,255,255);
 };
 
 class KMeans: public Classifier {
