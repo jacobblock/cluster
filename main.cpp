@@ -27,13 +27,14 @@ void MyEllipse(cv::Mat img, double angle) {
 }
 
 
-bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &filepath); 
+bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &filepath, std::string &outputpath); 
 
 int main(int argc, char* argv[]) {
     unsigned int k = 0;
     std::string filepath = "";
+    std::string outputpath = "default.png";
 
-    if(!parseArgs(argc, argv, k, filepath)) {
+    if(!parseArgs(argc, argv, k, filepath, outputpath)) {
         return -1;
     }
 
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::unique_ptr<Classifier> classifier(new KMeans(data, k));
+    std::unique_ptr<Classifier> classifier(new KMeans(data, k, outputpath));
     classifier->start();
 
 /*    char window[] = "Clustering";
@@ -64,10 +65,10 @@ int main(int argc, char* argv[]) {
 }
 
 // Parse input arguments
-bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &filepath) {
+bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &filepath, std::string &outputpath) {
     // Check for correct number of arguments
-    if(3 != argc) {
-        std::cout << "Program should be run as \"cluster -k[clusters] -i[input file]\"." << std::endl;
+    if(3 > argc) {
+        std::cout << "Program should be run as \"cluster -k[clusters] -i[input file] -o[output file (PNG,JPEG,PPM,PGM,PBM), OPTIONAL]\"." << std::endl;
         return false; 
     }
 
@@ -93,5 +94,18 @@ bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &filepath) {
         return false;
     }
 
+    if(argc > 3) {
+        // Parse outputpath
+        boost::regex filepath_regex("-o(.+)");
+        boost::smatch filepath_regex_result;
+        if(boost::regex_match(std::string(argv[2]), filepath_regex_result, filepath_regex)) {
+            filepath = filepath_regex_result[1].str();
+            std::cout << "Input filepath: " << filepath << std::endl; 
+        } else {
+            std::cout << "o argument should be a filepath: \"-o[filepath]\"" << std::endl;
+            return false;
+        }
+    }
+    
     return true;
 }

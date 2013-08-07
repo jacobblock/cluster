@@ -7,13 +7,15 @@
 
 #define _USE_MATH_DEFINES
 
-Classifier::Classifier(std::list<cv::Vec2i> data, unsigned int k, double convergence, unsigned int max_iterations)
+Classifier::Classifier(std::list<cv::Vec2i> data, unsigned int k, std::string outputfile, double convergence, unsigned int max_iterations)
     : data(data)
     , k(k)
+    , outputfile(outputfile)
     , convergence(convergence)
     , max_iterations(max_iterations) 
 {}
 
+// Primary loop of a generic classifier.
 void Classifier::start() {
     init();
 
@@ -25,13 +27,38 @@ void Classifier::start() {
             return;
         }
     }
+
+    std::cout << "Successfully converged. Output figure saved to " << outputfile << std::endl;
 }
 
-KMeans::KMeans(std::list<cv::Vec2i> data, unsigned int k, double convergence, unsigned int max_iterations)
-    : Classifier(data, k, convergence, max_iterations)
+// Based off of http://stackoverflow.com/a/10731340/361707
+// Evenly distribute colors in chrominance (UV)
+std::vector<cv::Scalar> Classifier::colormodel() const {
+    std::vector<cv::Scalar> colors;
+    for(unsigned int i = 0; i < k; ++i) {
+        double angle = i*2*M_PI/k;
+
+        double Y = 0.5;
+        double U = std::cos(angle);
+        double V = std::sin(angle);
+
+        int R = 255*(Y+V/0.88);
+        int G = 255*(Y-0.38*U-0.58*V);
+        int B = 255*(Y+U/0.49);
+        
+        // Colors are BGR
+        colors.push_back(cv::Scalar(B, G, R));
+    }
+
+    return colors;
+}
+
+KMeans::KMeans(std::list<cv::Vec2i> data, unsigned int k, std::string outputfile, double convergence, unsigned int max_iterations)
+    : Classifier(data, k, outputfile, convergence, max_iterations)
 {
     cv::namedWindow(window, cv::WINDOW_AUTOSIZE);
 
+    // Create correct size figure
     cv::Vec2i topright, bottomleft;
     topright = data.front();
     bottomleft = data.front();
@@ -49,12 +76,11 @@ KMeans::KMeans(std::list<cv::Vec2i> data, unsigned int k, double convergence, un
             bottomleft[1] = point[1];
         }
     }
+
     int width = (topright[0] - bottomleft[0])+circle_radius;
     int height = (topright[1] - bottomleft[1])+circle_radius;
     image = cv::Mat::zeros(width, height, CV_8UC3);
-    colors = colormodel(k);
-    std::cout << topright << std::endl;
-    std::cout << bottomleft << std::endl;
+    colors = colormodel();
 }
 
 // Forgy init method. Set k means to random points.
@@ -121,13 +147,16 @@ bool KMeans::update() {
     std::vector<cv::Vec2i> means2 = update_means();
     display();
 
-/*    double dif = cv::norm(means2 - this->means);
+    std::vector<cv::Vec2i> diff_v;
+    cv::absdiff(means, means2, diff_v);
+    double diff = cv::sum(cv::sum(diff_v))[0];
     means = std::move(means2);
-
-    return dif >= this->convergence; // Return false (stop condition) if convergence reached
-    */
-
-    return false;
+    
+    std::cout << diff << std::endl;
+    if (diff <= convergence) {
+        cv::imwrite(outputfile, image);        
+    }
+    return (diff > convergence); // Returns false if convergence is reached. 
 }
 
 void KMeans::display() {
@@ -140,25 +169,4 @@ void KMeans::display() {
     }
 
     cv::imshow(window, image);
-    cv::waitKey(0);
-}
-
-//std::vector<std::vector<cv::Vec2i>> clusters = assign(means, data);
-/*std::vector<std::vector<cv::Vec2i>> assign(std::vector<cv::Vec2i> const means, std::vector<cv::Vec2i> const data) {
-    std::vector<std::vector<cv::Vec2i>> sets;*/
-
-// Based off of http://stackoverflow.com/a/10731340/361707
-std::vector<cv::Scalar> KMeans::colormodel(unsigned int k) const {
-    std::vector<cv::Scalar> colors;
-    for(int i = 0; i < k; ++i) {
-        double angle = i*2*M_PI/k;
-
-        double Y = 0.5;
-        double U = std::cos(angle);
-        double V = std::sin(angle);
-
-        colors.push_back(cv::Scalar(255*(Y+V/0.88), 255*(Y-0.38*U-0.58*V), 255*(Y+U/0.49)));
-    }
-
-    return colors;
 }
