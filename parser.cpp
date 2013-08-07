@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <fstream>
+#include <iostream>
 #include <boost/regex.hpp>
 
 Parser::Parser(std::string filepath)

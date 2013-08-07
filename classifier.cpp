@@ -58,28 +58,37 @@ KMeans::KMeans(std::list<cv::Vec2i> data, unsigned int k, std::string outputfile
 {
     cv::namedWindow(window, cv::WINDOW_AUTOSIZE);
 
-    // Create correct size figure
-    cv::Vec2i topright, bottomleft;
-    topright = data.front();
-    bottomleft = data.front();
+    // Create figure 
+    // Shift top left to be (0,0)
+    cv::Vec2i topleft, bottomright;
+    topleft = data.front();
+    bottomright = data.front();
     for(auto point : data) {
-        if(point[0] > topright[0]) {
-            topright[0] = point[0];
+        if(point[0] < topleft[0]) {
+            topleft[0] = point[0];
         }
-        if(point[1] > topright[1]) {
-            topright[1] = point[1];
+        if(point[1] < topleft[1]) {
+            topleft[1] = point[1];
         }
-        if(point[0] < bottomleft[0]) {
-            bottomleft[0] = point[0];
+        if(point[0] > bottomright[0]) {
+            bottomright[0] = point[0];
         }
-        if(point[1] < bottomleft[1]) {
-            bottomleft[1] = point[1];
+        if(point[1] > bottomright[1]) {
+            bottomright[1] = point[1];
         }
     }
 
-    int width = (topright[0] - bottomleft[0]);
-    int height = (topright[1] - bottomleft[1]);
-    image = cv::Mat::zeros(width, height, CV_8UC3);
+    // Pad with 1 pixel border on all sides.
+    int width = (bottomright[0] - topleft[0])+3;
+    int height = (bottomright[1] - topleft[1])+3;
+    topleft -= cv::Vec2i(1,1);
+
+    std::cout << "Topleft: " << topleft << std::endl;
+    for(cv::Vec2i &point : data) {
+        point -= topleft;
+    }
+
+    image = cv::Mat::zeros(height, width, CV_8UC3);
     image = background;
     colors = colormodel();
 }
