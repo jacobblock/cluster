@@ -7,25 +7,38 @@
 
 class Classifier {
 public:
-    unsigned int k;
+    Classifier(std::list<cv::Vec2i> data, unsigned int k, double convergence = 0, unsigned int max_iterations = 1000);
+    virtual void start();
+
+protected:
+    virtual void init() = 0;
+    virtual bool update() = 0;
+
     std::list<cv::Vec2i> data;
-    virtual void start() = 0;
+    unsigned int k;
+    double convergence;
+    unsigned int max_iterations;
 };
 
-class KMeans : public Classifier {
+class KMeans: public Classifier {
 public:
-    std::vector<cv::Vec2i> means;
+    KMeans(std::list<cv::Vec2i> data, unsigned int k, double convergence = 0, unsigned int max_iterations = 1000);
 
-    void start();
-
-    // Forgy init method
-    void init(unsigned int k, std::list<cv::Vec2i> data);
-    void assign();
+private:
+    void init(); // Forgy init method
     bool update();
 
-    //std::vector<cv::Vec2i> means = init(k, data);
-    //std::vector<std::vector<cv::Vec2i>> clusters = assign(means, data);
+    std::vector<std::list<cv::Vec2i>> assign_sets() const;
+    std::vector<cv::Vec2i> update_means() const;
+    void display();
+    std::vector<cv::Scalar> colormodel(unsigned int k) const;
 
+    std::vector<cv::Vec2i> means;
+    std::vector<std::list<cv::Vec2i>> sets;
+    std::string window = "KMeans Classification";
+    cv::Mat image;
+    std::vector<cv::Scalar> colors;
+    unsigned int circle_radius = 5;
 };
 
 #endif

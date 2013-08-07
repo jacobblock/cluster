@@ -11,7 +11,6 @@
 
 static double w = 100;
 
-
 void MyEllipse(cv::Mat img, double angle) {
     int thickness = 2;
     int lineType = 8;
@@ -38,21 +37,17 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    //std::unique_ptr<Parser> parser(new ParseByCSVPoints(filepath));
-    //std::list<cv::Vec2i> data = parser->parse();
-
-    ParseByCSVPoints parser(filepath);
-    std::list<cv::Vec2i> data = parser.parse();
+    std::unique_ptr<Parser> parser(new ParseByCSVPoints(filepath));
+    std::list<cv::Vec2i> data = parser->parse();
 
     if(k > data.size()) {
         std::cout << "Number of classes is larger than the data set." << std::endl;
         return -1;
     }
 
-    //ClusterByKMeans kmeans(k, data);
-    //kmean.start();
+    std::unique_ptr<Classifier> classifier(new KMeans(data, k));
+    classifier->start();
 
-    //    std::unique_ptr<Cluster> cluster(new ClusterByLloyd());
 /*    char window[] = "Clustering";
     cv::Mat image = cv::Mat::zeros(100, 100, CV_8UC3);
     
@@ -68,6 +63,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+// Parse input arguments
 bool parseArgs(int argc, char* argv[], unsigned int &k, std::string &filepath) {
     // Check for correct number of arguments
     if(3 != argc) {
