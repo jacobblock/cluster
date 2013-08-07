@@ -28,7 +28,7 @@ void Classifier::start() {
         }
     }
 
-    std::cout << "Successfully converged. Output figure saved to " << outputfile << std::endl;
+    std::cout << "Successfully converged" << std::endl;
 }
 
 // Based off of http://stackoverflow.com/a/10731340/361707
@@ -99,7 +99,6 @@ void KMeans::init() {
 
 std::vector<std::list<cv::Vec2i>> KMeans::assign_sets() const {
     std::vector<std::list<cv::Vec2i>> sets(this->means.size(), std::list<cv::Vec2i>());
-    std::cout << "Number of sets: " << std::to_string(sets.size()) << std::endl;
 
     for(auto point : this->data) {
         int index = 0;
@@ -134,7 +133,6 @@ std::vector<cv::Vec2i> KMeans::update_means() const {
         v = v / (double)set.size();
 
         means.push_back(v);
-        std::cout << std::to_string(i) << " Old: " << this->means[i] << " New: " << means.back() << std::endl;
         ++i;
     }
 //    means = this->means;
@@ -152,7 +150,7 @@ bool KMeans::update() {
     double diff = cv::sum(cv::sum(diff_v))[0];
     means = std::move(means2);
     
-    std::cout << diff << std::endl;
+    // Dump final image
     if (diff <= convergence) {
         cv::imwrite(outputfile, image);        
     }
@@ -168,5 +166,6 @@ void KMeans::display() {
         ++it;
     }
 
-    cv::imshow(window, image);
+//    cv::imshow(window, image);
+//    cv::waitKey(0);
 }
