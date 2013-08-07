@@ -86,7 +86,6 @@ KMeans::KMeans(std::list<cv::Vec2i> data, unsigned int k, std::string outputfile
     int height = (bottomright[1] - topleft[1])+3;
     topleft -= cv::Vec2i(1,1);
 
-    std::cout << "Topleft: " << topleft << std::endl;
     for(cv::Vec2i &point : data) {
         point -= topleft;
     }
